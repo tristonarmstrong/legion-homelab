@@ -1,0 +1,24 @@
+pkgname=luna
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Luna's face: shows what the family voice assistant is doing"
+arch=('x86_64' 'aarch64')
+license=('MIT')
+depends=('qt6-base' 'qt6-declarative' 'qt6-wayland' 'qt6-websockets')
+makedepends=('gcc' 'make')
+source=()
+sha256sums=()
+
+build() {
+  cd "$startdir/.."
+  ./bin/build
+}
+
+package() {
+  cd "$startdir/.."
+  install -Dm755 build/luna "$pkgdir/usr/bin/luna"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 "$startdir/luna.svg" "$pkgdir/usr/share/icons/hicolor/scalable/apps/luna.svg"
+  install -Dm644 "$startdir/luna.desktop" "$pkgdir/usr/share/applications/luna.desktop"
+  install -Dm644 "$startdir/luna.service" "$pkgdir/usr/lib/systemd/user/luna.service"
+}
