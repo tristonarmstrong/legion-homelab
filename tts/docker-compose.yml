@@ -1,0 +1,8 @@
+name: tts
+services:
+  tiny-voca:
+    build: .
+    image: localhost/tiny-voca:latest
+    restart: unless-stopped
+    network_mode: host
+    volumes: ["./weights:/weights:ro"]

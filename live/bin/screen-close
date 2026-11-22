@@ -1,0 +1,10 @@
+#!/bin/bash
+# Close whatever Luna opened on the Legion's display. Never touches your own browser windows.
+source "$(dirname "$0")/screen-env"
+if pkill -f -- "--user-data-dir=$JARVIS_PROFILE"; then
+  [[ ${1:-} == --quiet ]] || echo "Closed the screen."
+else
+  [[ ${1:-} == --quiet ]] || echo "Nothing was open."
+fi
+"$(dirname "$0")/screen-luna-fullscreen" || true
+exit 0

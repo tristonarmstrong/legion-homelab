@@ -1,0 +1,5 @@
+# Sourced by the screen-* commands: reach the logged-in Hyprland session from a service.
+export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+export HYPRLAND_INSTANCE_SIGNATURE=${HYPRLAND_INSTANCE_SIGNATURE:-$(ls -t "$XDG_RUNTIME_DIR/hypr" 2>/dev/null | head -1)}
+export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-$(cd "$XDG_RUNTIME_DIR" && ls -d wayland-[0-9] 2>/dev/null | head -1)}
+export JARVIS_PROFILE=$HOME/.local/share/jarvis-screen

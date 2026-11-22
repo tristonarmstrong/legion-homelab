@@ -1,0 +1,16 @@
+#!/bin/bash
+# Download tiny-voca's ONNX model and phonemizer data, and its dizione source,
+# into this directory (not committed).
+set -euo pipefail
+cd "$(dirname "$0")"
+[[ -d dizione ]] || git clone --depth 1 https://github.com/n4ze3m/dizione.git
+[[ -d tiny-voca ]] || git clone --depth 1 https://github.com/n4ze3m/tiny-voca.git
+mkdir -p app weights
+cp tiny-voca/src/tiny_voca/text.py app/tv_text.py
+curl -s https://huggingface.co/api/models/n4ze3m/tiny-voca | jq -r '.siblings[].rfilename' |
+  grep -E '^(config\.json|onnx/model\.onnx|phonemizer/)' |
+  while read -r f; do
+    mkdir -p "weights/$(dirname "$f")"
+    [[ -s "weights/$f" ]] || curl -fsL -o "weights/$f" "https://huggingface.co/n4ze3m/tiny-voca/resolve/main/$f"
+  done
+echo "fe6d918791a15b82e37465981d7f27a070e46b46635e5a3482fc8dff87a1ae46  weights/onnx/model.onnx" | sha256sum -c

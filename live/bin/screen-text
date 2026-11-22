@@ -1,0 +1,19 @@
+#!/bin/bash
+# Show large text full-screen on the Legion's display. Lines become separate rows.
+# Usage: screen-text "Shopping list:\nEggs\nMilk"   (or pipe text in)
+set -euo pipefail
+text=${1:-$(cat)}
+dir=$HOME/.local/share/jarvis-screen-pages
+mkdir -p "$dir"
+page=$dir/text.html
+python3 - "$text" "$page" <<'PY'
+import html, sys
+text, page = sys.argv[1].replace("\\n", "\n"), sys.argv[2]
+rows = "".join(f"<p>{html.escape(l)}</p>" for l in text.strip().splitlines() if l.strip())
+open(page, "w").write(f"""<!doctype html><meta charset=utf-8><title>Jarvis</title>
+<style>html,body{{margin:0;height:100%;background:#0f1115;color:#e8e6e3;font-family:system-ui,sans-serif}}
+body{{display:flex;flex-direction:column;justify-content:center;padding:6vw;box-sizing:border-box}}
+p{{margin:.25em 0;font-size:clamp(28px,7vw,96px);line-height:1.15}}p:first-child{{color:#8ab4f8}}</style>
+<body>{rows}</body>""")
+PY
+exec "$(dirname "$0")/screen-open" "file://$page"

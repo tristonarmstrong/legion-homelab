@@ -1,0 +1,6 @@
+#!/bin/bash
+# List the windows on the Legion's display, marking the ones Luna opened.
+source "$(dirname "$0")/screen-env"
+jarvis_pids=" $(pgrep -f -- "--user-data-dir=$JARVIS_PROFILE" | tr '\n' ' ')"
+hyprctl clients -j | jq -r --arg p "$jarvis_pids" \
+  '.[] | (.pid as $pid | if ($p | contains(" \($pid) ")) then "[luna] " else "" end) + "\(.class): \(.title)"'

@@ -1,0 +1,11 @@
+title: Home
+theme: dark
+color: slate
+headerStyle: clean
+layout:
+  Home:
+    style: row
+    columns: 2
+  Files:
+    style: row
+    columns: 2

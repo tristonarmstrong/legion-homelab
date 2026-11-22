@@ -1,0 +1,43 @@
+#!/bin/bash
+# Copy the live system files this repo documents into live/, so a commit records
+# what is really on the Legion, including changes Luna makes to herself.
+# Run it before committing:   ./collect && git add -A && git commit
+set -euo pipefail
+cd "$(dirname "$0")"
+L=live
+rm -rf "$L"
+mkdir -p "$L"/{bin,systemd-user,system,hermes/skills,hypr}
+
+# Screen commands Luna uses (she edits these herself).
+cp -p "$HOME"/.local/bin/screen-* "$L/bin/"
+
+# User services: the voice loop, Hermes and the face.
+cp -p "$HOME/.config/systemd/user/voiced.service" "$L/systemd-user/"
+cp -p "$HOME/.config/systemd/user/hermes-gateway.service" "$L/systemd-user/"
+[[ -f /usr/lib/systemd/user/luna.service ]] && cp -p /usr/lib/systemd/user/luna.service "$L/systemd-user/"
+
+# Root-owned config (readable without sudo).
+cp -p /etc/udev/rules.d/90-battery-long-life.rules "$L/system/" 2>/dev/null || true
+cp -p /etc/systemd/sleep.conf.d/omarchy-sleep-disabled.conf "$L/system/" 2>/dev/null || true
+cp -p /etc/chromium/policies/managed/adblock.json "$L/system/chromium-adblock.json" 2>/dev/null || true
+amixer -c 1 contents 2>/dev/null | grep -A2 -E "Internal Mic Boost Volume|'Capture Volume'" > "$L/system/mic-mixer.txt" || true
+
+# Hermes: settings without secrets, and the skills Luna wrote herself.
+grep -vE "KEY|TOKEN|SECRET|PASSWORD" "$HOME/.hermes/config.yaml" > "$L/hermes/config.yaml"
+grep -E '^[A-Z_]+=' "$HOME/.hermes/.env" | sed -E 's/=.*/=<set>/' > "$L/hermes/env-variables.txt"
+# Only skills Luna wrote herself: ones that don't ship with Hermes.
+find "$HOME/.hermes/skills" -name SKILL.md | while read -r f; do
+  name=$(basename "$(dirname "$f")")
+  if [[ -z $(find "$HOME/.hermes/hermes-agent" -path "*/$name/SKILL.md" -print -quit 2>/dev/null) ]]; then
+    mkdir -p "$L/hermes/skills/$name"; cp -p "$f" "$L/hermes/skills/$name/"
+  fi
+done
+
+# Hyprland lines that mention Luna (window rules she added).
+grep -n -i "luna" "$HOME/.config/hypr/"*.lua > "$L/hypr/luna-rules.txt" 2>/dev/null || true
+
+# Network: what Tailscale serves and which exit node is in use.
+tailscale serve status > "$L/tailscale-serve.txt" 2>/dev/null || true
+tailscale status --json 2>/dev/null | jq '{ExitNode: (.ExitNodeStatus.ID // null), Self: .Self.DNSName}' > "$L/tailscale.json" 2>/dev/null || true
+
+echo "Collected live config into $L/. Review with: git status && git diff"

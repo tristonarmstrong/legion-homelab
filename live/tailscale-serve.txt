@@ -1,0 +1,12 @@
+https://legion.<tailnet>.ts.net:2283 (tailnet only)
+|-- / proxy http://127.0.0.1:12283
+
+https://legion.<tailnet>.ts.net (tailnet only)
+|-- / proxy http://127.0.0.1:13000
+
+https://legion.<tailnet>.ts.net:8000 (tailnet only)
+|-- / proxy http://127.0.0.1:18000
+
+https://legion.<tailnet>.ts.net:8222 (tailnet only)
+|-- / proxy http://127.0.0.1:18222
+

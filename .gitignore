@@ -1,0 +1,55 @@
+# Allow-list: everything is ignored unless listed below, so secrets (.env files,
+# CREDENTIALS.txt, API keys) and data (photos, databases, models) can never be
+# committed by accident.
+/*
+!/.gitignore
+!/README.md
+!/docs/
+!/live/
+!/collect
+
+!/dashboard/
+/dashboard/*
+!/dashboard/docker-compose.yml
+!/dashboard/config/
+/dashboard/config/logs/
+
+!/immich/
+/immich/*
+!/immich/docker-compose.yml
+!/immich/.env.example
+
+!/paperless/
+/paperless/*
+!/paperless/docker-compose.yml
+!/paperless/.env.example
+
+!/vaultwarden/
+/vaultwarden/*
+!/vaultwarden/docker-compose.yml
+!/vaultwarden/.env.example
+
+!/speech/
+/speech/*
+!/speech/docker-compose.yml
+
+!/tts/
+/tts/*
+!/tts/docker-compose.yml
+!/tts/Containerfile
+!/tts/app/
+!/tts/fetch
+
+!/voiced/
+/voiced/*
+!/voiced/Cargo.toml
+!/voiced/Cargo.lock
+!/voiced/src/
+!/voiced/models/
+/voiced/models/*
+!/voiced/models/fetch
+
+# Never, even if someone widens the rules above.
+.env
+*.key
+CREDENTIALS.txt

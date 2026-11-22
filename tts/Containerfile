@@ -1,0 +1,8 @@
+FROM docker.io/library/python:3.12-slim
+RUN pip install --no-cache-dir onnxruntime numpy
+COPY dizione /src/dizione
+RUN pip install --no-cache-dir /src/dizione
+COPY app /app
+WORKDIR /app
+ENV DIZIONE_DATA=/weights/phonemizer WEIGHTS=/weights THREADS=4 PORT=10210
+CMD ["python", "server.py"]

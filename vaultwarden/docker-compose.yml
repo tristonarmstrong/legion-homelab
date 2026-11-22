@@ -1,0 +1,11 @@
+name: vaultwarden
+services:
+  vaultwarden:
+    image: docker.io/vaultwarden/server:latest
+    restart: unless-stopped
+    ports: ["127.0.0.1:18222:80"]
+    volumes: ["./data:/data"]
+    environment:
+      DOMAIN: https://legion.<tailnet>.ts.net:8222
+      SIGNUPS_ALLOWED: "true"
+      ADMIN_TOKEN: ${ADMIN_TOKEN}

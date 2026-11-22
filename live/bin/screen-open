@@ -1,0 +1,23 @@
+#!/bin/bash
+# Show a web page full-screen on the Legion's display (replaces whatever Jarvis had open).
+# Usage: screen-open <url>
+set -euo pipefail
+url=${1:?usage: screen-open <url>}
+[[ $url == *://* ]] || url="https://$url"
+
+source "$(dirname "$0")/screen-env"
+screen-close --quiet || true
+
+hyprctl dispatch "hl.dsp.exec_cmd([[chromium --user-data-dir=$JARVIS_PROFILE --app=$url --start-fullscreen \
+  --no-first-run --noerrdialogs --hide-crash-restore-bubble --disable-session-crashed-bubble \
+  --autoplay-policy=no-user-gesture-required]])" >/dev/null
+
+for _ in $(seq 40); do
+  if pgrep -f -- "--user-data-dir=$JARVIS_PROFILE" >/dev/null; then
+    echo "Showing $url on screen."
+    exit 0
+  fi
+  sleep 0.25
+done
+echo "Could not open $url on screen (browser did not start)." >&2
+exit 1

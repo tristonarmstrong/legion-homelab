@@ -1,0 +1,12 @@
+#!/bin/bash
+# Download the models voiced loads. They are not committed (size and licences).
+set -euo pipefail
+cd "$(dirname "$0")"
+oww=https://github.com/dscripka/openWakeWord/releases/download/v0.5.1
+get() { [[ -s $2 ]] || curl -fL --progress-bar -o "$2" "$1"; }
+get "$oww/melspectrogram.onnx" melspectrogram.onnx       # openWakeWord feature models
+get "$oww/embedding_model.onnx" embedding_model.onnx
+get "$oww/hey_jarvis_v0.1.onnx" hey_jarvis_v0.1.onnx     # spare wake word
+get "https://raw.githubusercontent.com/fwartner/home-assistant-wakewords-collection/main/en/Hey%20Luna/hey_luna.onnx" hey_luna.onnx
+get "https://github.com/snakers4/silero-vad/raw/v5.1.2/src/silero_vad/data/silero_vad.onnx" silero_vad.onnx
+ls -la *.onnx

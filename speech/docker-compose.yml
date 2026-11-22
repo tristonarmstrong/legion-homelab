@@ -1,0 +1,14 @@
+name: speech
+services:
+  whisper:
+    image: docker.io/rhasspy/wyoming-whisper:latest
+    restart: unless-stopped
+    command: --model small-int8 --language en
+    ports: ["127.0.0.1:10300:10300"]
+    volumes: ["./whisper:/data"]
+  piper:
+    image: docker.io/rhasspy/wyoming-piper:latest
+    restart: unless-stopped
+    command: --voice en_US-lessac-medium
+    ports: ["127.0.0.1:10200:10200"]
+    volumes: ["./piper:/data"]

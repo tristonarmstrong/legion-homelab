@@ -1,0 +1,21 @@
+- Home:
+    - Hermes:
+        icon: mdi-robot-happy
+        description: The assistant's brain (Claude Haiku)
+        siteMonitor: http://127.0.0.1:8642/health
+- Files:
+    - Immich:
+        icon: immich.png
+        href: https://legion.<tailnet>.ts.net:2283
+        description: Photos & videos
+        siteMonitor: http://127.0.0.1:12283
+    - Paperless:
+        icon: paperless-ngx.png
+        href: https://legion.<tailnet>.ts.net:8000
+        description: Documents
+        siteMonitor: http://127.0.0.1:18000
+    - Vaultwarden:
+        icon: vaultwarden.png
+        href: https://legion.<tailnet>.ts.net:8222
+        description: Passwords
+        siteMonitor: http://127.0.0.1:18222/alive

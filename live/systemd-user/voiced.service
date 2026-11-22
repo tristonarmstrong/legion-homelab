@@ -1,0 +1,14 @@
+[Unit]
+Description=voiced - Hey Jarvis voice loop (wake word -> Whisper -> Hermes -> tiny-voca)
+After=pipewire-pulse.service hermes-gateway.service
+Wants=pipewire-pulse.service
+
+[Service]
+ExecStart=%h/homelab/voiced/target/release/voiced
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin
+Restart=always
+RestartSec=2
+Nice=-5
+
+[Install]
+WantedBy=default.target

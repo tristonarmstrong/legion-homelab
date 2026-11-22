@@ -1,0 +1,7 @@
+numid=6,iface=MIXER,name='Capture Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=63,step=0
+  : values=45,45
+--
+numid=8,iface=MIXER,name='Internal Mic Boost Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=3,step=0
+  : values=1,1

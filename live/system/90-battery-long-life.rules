@@ -1,0 +1,1 @@
+ACTION=="add|change", SUBSYSTEM=="power_supply", KERNEL=="BATT", ATTR{charge_types}="Long_Life"
