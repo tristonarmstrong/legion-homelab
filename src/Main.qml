@@ -41,7 +41,7 @@ ApplicationWindow {
             anchors.top: parent.top
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.topMargin: 24
-            visible: backend.demo
+            visible: backend.demo && !snapshotMode
             color: theme.accent
             font.pixelSize: 18
             text: qsTr("Preview: Space steps through Luna's moods")
