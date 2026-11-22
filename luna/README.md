@@ -1,6 +1,6 @@
 # Luna
 
-![Luna listening](docs/listening.png)
+![Luna's moods](../docs/images/moods.png)
 
 Luna's face. A full-screen animated face for the family voice assistant: she
 dozes while idle, perks up on "Hey Luna", listens, glances around while she

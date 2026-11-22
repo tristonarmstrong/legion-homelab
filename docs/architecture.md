@@ -14,7 +14,7 @@ OS: Omarchy (Arch Linux + Hyprland), kernel 7.2.
 | Piece | Runs as | Listens on | Source |
 |---|---|---|---|
 | voiced (voice loop) | user service `voiced.service` | 127.0.0.1:7071 (state WebSocket) | `voiced/` |
-| luna (face) | user service `luna.service`, package `luna` | client of :7071 | `~/Work/luna` |
+| luna (face) | user service `luna.service`, package `luna` | client of :7071 | `luna/` |
 | Hermes Agent gateway | user service `hermes-gateway.service` | 127.0.0.1:8642 (API) | `~/.hermes/hermes-agent` |
 | Whisper (speech to text) | container `speech_whisper_1` | 127.0.0.1:10300 (Wyoming) | `speech/` |
 | Piper (spare TTS, unused) | container `speech_piper_1` | 127.0.0.1:10200 (Wyoming) | `speech/` |

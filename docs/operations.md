@@ -41,7 +41,7 @@ cd ~/homelab/<service> && podman-compose restart
 | Voice | `Environment=VOICED_VOICE=M2` |
 | Too many or too few wake-ups | `Environment=VOICED_WAKE_THRESHOLD=0.4` (fewer misses) or `0.6` (fewer false triggers) |
 | Brain model | `hermes config set model.default <model>`, restart hermes-gateway |
-| Face | edit `~/Work/luna`, `bin/test`, `bin/install`, restart luna |
+| Face | edit `luna/`, then `luna/bin/test`, `luna/bin/install`, restart luna |
 
 ## Update
 

@@ -103,7 +103,7 @@ Immich, Paperless and Vaultwarden, plus CPU, memory, disk and uptime.</sub>
 ## This repo
 
 `~/homelab` on the Legion is the repo: compose files, the voice loop's source
-and the tiny-voca service. Luna's face is its own app in `~/Work/luna`. Files
+(`voiced/`), Luna's face app (`luna/`) and the tiny-voca service (`tts/`). Files
 that live elsewhere on the system (screen commands, systemd units, root-owned
 config, Luna's self-written skills) are copied into `live/` by `./collect`:
 

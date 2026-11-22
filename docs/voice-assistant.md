@@ -162,7 +162,7 @@ opens have no ads.
 
 ## The face
 
-`luna` is an Omarchy-style Qt Quick app (`~/Work/luna`, its own git repo),
+`luna` is an Omarchy-style Qt Quick app (`luna/` in this repo),
 installed as the `luna` package with a launcher entry and `luna.service`.
 Original character: two glowing capsule eyes in the Omarchy accent color,
 soft cheeks, a small mouth.
