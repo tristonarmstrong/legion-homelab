@@ -25,7 +25,41 @@ OS: Omarchy (Arch Linux + Hyprland), kernel 7.2.
 | Vaultwarden | 1 container | 127.0.0.1:18222 | `vaultwarden/` |
 | Tailscale | system service | tailnet HTTPS 443, 2283, 8000, 8222 | — |
 
+```mermaid
+flowchart LR
+    subgraph voice["Luna · systemd --user"]
+        direction TB
+        luna["luna.service<br/>face"] --> voiced["voiced.service<br/>:7071"]
+        voiced --> hermes["hermes-gateway.service<br/>:8642"]
+    end
+
+    subgraph speech["Speech · Podman"]
+        direction TB
+        whisper["speech_whisper_1<br/>:10300"]
+        tts["tts_tiny-voca_1<br/>:10210"]
+        piper["speech_piper_1<br/>:10200 · unused"]
+    end
+
+    subgraph server["Home server · Podman"]
+        direction TB
+        homepage["dashboard_homepage_1<br/>:13000"]
+        immich["immich (4 containers)<br/>:12283"]
+        paperless["paperless (3 containers)<br/>:18000"]
+        vault["vaultwarden<br/>:18222"]
+    end
+
+    voiced --> whisper & tts
+    tailscaled["tailscaled<br/>HTTPS 443 · 2283 · 8000 · 8222"] --> homepage & immich & paperless & vault
+```
+
+Every port above is on `127.0.0.1`; only `tailscaled` faces outward, and only to
+the tailnet. The dashboard polls each service (and Hermes and tiny-voca) for its
+status card, and `podman-restart.service` starts all containers at boot.
+
 ## How a voice request flows
+
+A step-by-step sequence diagram is in
+[the voice assistant doc](voice-assistant.md#one-request-end-to-end).
 
 1. `voiced` reads the mic continuously (`pacat`, 16 kHz mono, 80 ms chunks) and
    runs openWakeWord (melspectrogram, then embeddings, then the `hey_luna`
@@ -51,6 +85,22 @@ Throughout, `voiced` broadcasts its state (`idle`, `wake`, `listening`,
 sentence) on `ws://127.0.0.1:7071`, and the face app draws it.
 
 ## Network
+
+```mermaid
+flowchart LR
+    subgraph tailnet["Tailscale tailnet"]
+        mac["Mac"]
+        phones["Family phones"]
+        legion["legion<br/><legion-host>"]
+        vps["VPS exit node<br/>exit node"]
+    end
+    lan["Local Wi-Fi / LAN"]
+    internet(("Internet"))
+
+    mac & phones -- "HTTPS :443 :2283 :8000 :8222<br/>SSH" --> legion
+    legion -- "all outbound traffic" --> vps --> internet
+    lan -. "blocked: ufw + LAN access off" .-x legion
+```
 
 - **Tailscale** is the only way in. Each service is published with
   `tailscale serve --https=<port> http://127.0.0.1:<internal port>`, so it gets

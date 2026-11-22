@@ -14,8 +14,11 @@ published over Tailscale HTTPS. Logins are in `~/homelab/CREDENTIALS.txt`.
 
 ## Dashboard (Homepage)
 
-[Homepage](https://gethomepage.dev) at the root address, with a card and a
-live up/down dot for each service, plus CPU, memory, disk and a clock. Config
+![Homepage dashboard](images/dashboard.png)
+
+[Homepage](https://gethomepage.dev) at the root address: a "Luna" group (her
+brain, Hermes, and her voice, tiny-voca) and a "Files" group, each card with a
+live response time, plus CPU, memory, disk, uptime and a clock. Config
 in `dashboard/config/` (`services.yaml`, `widgets.yaml`, `settings.yaml`).
 Runs with host networking on 127.0.0.1:13000 so its status checks can reach
 the other services' loopback ports.

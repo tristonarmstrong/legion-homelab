@@ -3,7 +3,7 @@ theme: dark
 color: slate
 headerStyle: clean
 layout:
-  Home:
+  Luna:
     style: row
     columns: 2
   Files:

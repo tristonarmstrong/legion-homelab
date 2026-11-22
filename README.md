@@ -1,17 +1,66 @@
 # Legion home server and Luna
 
-A Lenovo Legion Go running Omarchy, set up as the house's always-on box. It does
-two jobs:
+![Luna's moods: asleep, waking, listening, thinking, speaking](docs/images/moods.png)
 
-1. **Home server.** Photos, documents and passwords for the family, reachable
+A Lenovo Legion Go running [Omarchy](https://omarchy.org), set up as the
+house's always-on box. It does two jobs:
+
+1. **Luna, the voice assistant.** Say **"Hey Luna"** and talk to her. She
+   answers out loud, looks things up, puts pages on the screen and takes them
+   away, keeps the conversation going without the wake word, and fixes her own
+   problems over time.
+2. **Home server.** Photos, documents and passwords for the family, reachable
    only over Tailscale, with a dashboard at the root address.
-2. **Luna, the voice assistant.** Say "Hey Luna" and talk to her. She answers
-   out loud, can look things up, can put pages on the screen and take them
-   away, and shows an animated face while she works.
 
-Everything runs as the `legion` user: rootless Podman containers and systemd
-user services. Nothing listens on the local network; services are bound to
-`127.0.0.1` and published over Tailscale HTTPS.
+Everything runs as the `legion` user (rootless Podman and systemd user
+services). Nothing listens on the local network.
+
+## How it fits together
+
+```mermaid
+flowchart LR
+    you(["🗣️ Hey Luna"]) --> mic["Mic"]
+    mic --> voiced
+
+    subgraph legion["Legion Go"]
+        direction LR
+        voiced["<b>voiced</b><br/>Rust voice loop<br/>wake word + VAD"]
+        whisper["<b>Whisper</b><br/>speech → text"]
+        hermes["<b>Hermes Agent</b><br/>memory · skills · tools"]
+        tts["<b>tiny-voca</b><br/>text → speech"]
+        face["<b>luna</b><br/>face app"]
+        screen["<b>screen-*</b><br/>commands"]
+
+        voiced -- audio --> whisper
+        whisper -- text --> voiced
+        voiced -- "turn (chained)" --> hermes
+        hermes -- "sentences (streamed)" --> voiced
+        voiced -- sentence --> tts
+        voiced -. "state (WebSocket :7071)" .-> face
+        hermes -- terminal tool --> screen
+    end
+
+    hermes <-- API --> deepseek[("DeepSeek<br/>V4 Flash")]
+    hermes <-- search --> web[("Web")]
+    tts --> speaker["🔊 Speaker"]
+    screen --> display["🖥️ Display"]
+    face --> display
+```
+
+```mermaid
+flowchart LR
+    phone["📱 Family devices<br/>on the tailnet"] -- HTTPS --> ts
+
+    subgraph legion["Legion Go"]
+        ts["tailscale serve<br/>legion.<tailnet>.ts.net"]
+        ts -- ":443" --> home["Homepage<br/>dashboard"]
+        ts -- ":2283" --> immich["Immich<br/>photos"]
+        ts -- ":8000" --> paperless["Paperless-ngx<br/>documents"]
+        ts -- ":8222" --> vault["Vaultwarden<br/>passwords"]
+    end
+
+    legion -- "all internet traffic" --> exit[("VPS exit node<br/>exit node")]
+```
 
 ## At a glance
 
@@ -25,36 +74,38 @@ user services. Nothing listens on the local network; services are bound to
 | SSH | `ssh legion@<legion-host>` (Tailscale) |
 | Logins | `~/homelab/CREDENTIALS.txt` on the Legion (never committed) |
 
-```text
-   "Hey Luna" ─▶ voiced (Rust) ─▶ Whisper ─▶ Hermes Agent ─▶ DeepSeek V4 Flash
-                   │  wake word, VAD          │  web search, terminal, memory, skills
-                   │                          └─▶ screen-open / screen-close ─▶ the display
-                   ├─▶ tiny-voca (speech) ─▶ speaker
-                   └─▶ luna (face app) ◀── state over ws://127.0.0.1:7071
-
-   Immich · Paperless · Vaultwarden · Homepage ─▶ 127.0.0.1 ─▶ tailscale serve (HTTPS) ─▶ tailnet
-```
+<table>
+<tr>
+<td width="38%" valign="top">
+<img src="docs/images/screen-recipe.png" alt="Luna showing a pancake recipe full-screen"><br>
+<sub>"Hey Luna, pull up a pancake recipe." She finds one, shows it full-screen
+(ad-blocked), and says what's on screen. "Close that" brings her face back.</sub>
+</td>
+<td width="62%" valign="top">
+<img src="docs/images/dashboard.png" alt="Homepage dashboard with live status for every service"><br>
+<sub>The dashboard at the root address: live status for Luna's brain and voice,
+Immich, Paperless and Vaultwarden, plus CPU, memory, disk and uptime.</sub>
+</td>
+</tr>
+</table>
 
 ## Docs
 
-- [Architecture](docs/architecture.md): every piece, the ports, how they connect.
-- [Luna, the voice assistant](docs/voice-assistant.md): voiced, the wake word,
-  Hermes, speech, the screen commands, the face, and how she improves herself.
-- [Services](docs/services.md): Immich, Paperless, Vaultwarden, the dashboard, Tailscale.
-- [System setup](docs/system.md): battery cap, never sleeping, no lock screen,
-  microphone levels, ad blocking, Podman, networking.
-- [Operations](docs/operations.md): logs, restarting, updating, backups, and
-  fixes for the problems we have actually hit.
-- [Decisions](docs/decisions.md): why it is built this way, and what was tried
-  and dropped.
+| | |
+|---|---|
+| [Luna, the voice assistant](docs/voice-assistant.md) | Talking to her, voiced, the wake word, Hermes, the screen, the face, how she improves herself |
+| [Architecture](docs/architecture.md) | Every piece and port, the request flow, the state machine, networking |
+| [Services](docs/services.md) | Immich, Paperless, Vaultwarden, the dashboard, tiny-voca, Tailscale |
+| [System setup](docs/system.md) | Battery cap, never sleeping, no lock screen, mic levels, ad blocking, Podman |
+| [Operations](docs/operations.md) | Status, logs, restarts, changing things, updates, backups, problems we've hit |
+| [Decisions](docs/decisions.md) | Why it's built this way, and what was tried and dropped |
 
 ## This repo
 
-`~/homelab` on the Legion is the repo. It holds the compose files, the voice
-loop's source and the tiny-voca service; Luna's face is its own app in
-`~/Work/luna`. Files that live elsewhere on the system (screen commands,
-systemd units, root-owned config, Luna's self-written skills) are copied into
-`live/` by `./collect`:
+`~/homelab` on the Legion is the repo: compose files, the voice loop's source
+and the tiny-voca service. Luna's face is its own app in `~/Work/luna`. Files
+that live elsewhere on the system (screen commands, systemd units, root-owned
+config, Luna's self-written skills) are copied into `live/` by `./collect`:
 
 ```sh
 cd ~/homelab

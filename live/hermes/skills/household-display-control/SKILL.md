@@ -73,3 +73,8 @@ grim -o eDP-1 /tmp/screen-check.png   # then look at the PNG with vision
   clear only after confirming, and only when asked — declining an offer is not a request to close.
 - Long content belongs on the screen, not in the voice reply: reading 1,000 numbers aloud takes
   about ten minutes, so offer the screen version instead of narrating.
+
+## Related
+
+Audio requests ("play that song") are a separate procedure — see `household-audio-playback`. The
+screen only carries a `screen-text "Now playing…"` card; the sound comes from mpv, not the page.

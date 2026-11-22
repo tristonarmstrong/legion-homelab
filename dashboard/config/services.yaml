@@ -1,8 +1,12 @@
-- Home:
-    - Hermes:
+- Luna:
+    - Brain:
         icon: mdi-robot-happy
-        description: The assistant's brain (Claude Haiku)
+        description: Hermes Agent on DeepSeek V4 Flash
         siteMonitor: http://127.0.0.1:8642/health
+    - Voice:
+        icon: mdi-account-voice
+        description: tiny-voca speech
+        siteMonitor: http://127.0.0.1:10210/
 - Files:
     - Immich:
         icon: immich.png

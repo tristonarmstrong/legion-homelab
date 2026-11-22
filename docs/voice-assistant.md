@@ -19,6 +19,66 @@ Luna is four small programs and an agent:
 - "Pull up a pancake recipe" puts a page on the screen; "close that" takes it
   away. "No thanks" to an offer leaves it up.
 
+## One request, end to end
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor You
+    participant V as voiced
+    participant W as Whisper
+    participant H as Hermes
+    participant D as DeepSeek
+    participant S as screen-open
+    participant T as tiny-voca
+    participant F as Face
+
+    You->>V: "Hey Luna"
+    V->>F: wake, then listening
+    V-->>You: rising chime
+    You->>V: "Pull up a pancake recipe"
+    Note over V: Silero VAD waits for<br/>~0.8 s of silence
+    V->>F: thinking
+    V->>W: audio (Wyoming)
+    W-->>V: "Pull up a pancake recipe."
+    V->>F: heard
+    V->>H: input + "screen shows: nothing"<br/>(previous_response_id)
+    H->>D: plan
+    D-->>H: web_search, then terminal
+    H->>F: (via voiced) thinking: web_search
+    H->>S: screen-open allrecipes.com/…
+    S-->>H: "Showing … on screen."
+    H-->>V: "Fluffy pancakes are up on the screen."
+    V->>T: sentence
+    T-->>V: 24 kHz WAV
+    V->>F: speaking + caption
+    V-->>You: 🔊 she talks
+    Note over V: listens 8 s for a follow-up,<br/>no wake word needed
+    You->>V: "Close that"
+    V->>H: chained turn
+    H->>S: screen-close (and re-fullscreen the face)
+    H-->>V: "Done."
+```
+
+## voiced's states
+
+These are what the face draws. `heard` carries the transcript and `thinking`
+can carry the tool Hermes is using.
+
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> wake: "Hey Luna" score ≥ 0.5
+    wake --> listening: chime
+    listening --> thinking: speech, then silence
+    listening --> idle: 6 s (8 s on follow-ups) of nothing,<br/>falling chime
+    thinking --> speaking: first sentence from Hermes
+    thinking --> listening: empty transcript
+    thinking --> idle: stop phrase ("thanks Luna")
+    speaking --> speaking: next sentence
+    speaking --> listening: reply finished (follow-up window)
+```
+
 ## voiced
 
 Source: `voiced/src/`. Build with `cargo build --release` in `voiced/`; the
@@ -96,6 +156,10 @@ Hermes drives the display with four commands in `~/.local/bin` (copied to
 uBlock Origin Lite is force-installed in Chromium by policy, so pages she
 opens have no ads.
 
+<img src="images/screen-recipe.png" alt="A pancake recipe Luna opened full-screen" width="320">
+
+<sub>What "Hey Luna, pull up a pancake recipe" looks like on the Legion.</sub>
+
 ## The face
 
 `luna` is an Omarchy-style Qt Quick app (`~/Work/luna`, its own git repo),
@@ -103,13 +167,10 @@ installed as the `luna` package with a launcher entry and `luna.service`.
 Original character: two glowing capsule eyes in the Omarchy accent color,
 soft cheeks, a small mouth.
 
-| State | Face |
-|---|---|
-| idle | resting smile; after 20 s dozes: slit eyes, drifting z's, dimmed |
-| wake | eyes pop open with a bounce |
-| listening | wide eyes, small "o" mouth, pulsing ring |
-| thinking | eyes glance around, thought bubbles, "Searching the web…", your words in quotes |
-| speaking | mouth moves, each sentence as a caption |
+| Asleep | Hey Luna! | Listening | Thinking | Speaking |
+|:---:|:---:|:---:|:---:|:---:|
+| <img src="images/face-asleep.png" width="150"> | <img src="images/face-wake.png" width="150"> | <img src="images/face-listening.png" width="150"> | <img src="images/face-thinking.png" width="150"> | <img src="images/face-speaking.png" width="150"> |
+| Resting smile; after 20 s of quiet she dozes: slit eyes, drifting z's, dimmed | Eyes pop open with a bounce | Wide eyes, small "o" mouth, pulsing ring | Eyes glance around, thought bubbles, "Searching the web…", your words in quotes | Mouth moves, each sentence as a caption |
 
 If `voiced` isn't running, the face says so. Keys (with a keyboard): Space
 previews moods, F full screen, ? shortcuts, Q quit.
