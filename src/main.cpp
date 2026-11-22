@@ -47,12 +47,16 @@ int main(int argc, char *argv[]) {
     engine.rootContext()->setContextProperty("theme", &theme);
     engine.rootContext()->setContextProperty("backend", &backend);
     engine.rootContext()->setContextProperty("snapshotMode", snapshot);
+    engine.rootContext()->setContextProperty("snapshotAsleep", false);
     engine.load(QUrl("qrc:/Main.qml"));
     if (engine.rootObjects().isEmpty())
         return 1;
 
     if (snapshot) {
-        const QString wanted = QString::fromLocal8Bit(argv[2]);
+        // "asleep" is idle after Luna has dozed off; the face handles that itself.
+        const bool asleep = QString::fromLocal8Bit(argv[2]) == "asleep";
+        const QString wanted = asleep ? QStringLiteral("idle") : QString::fromLocal8Bit(argv[2]);
+        engine.rootContext()->setContextProperty("snapshotAsleep", asleep);
         const QString out = QString::fromLocal8Bit(argv[3]);
         // Step the demo at least once so the face shows the preview, not "voiced isn't running".
         for (int i = 0; i < 6 && (i == 0 || backend.state() != wanted); ++i)

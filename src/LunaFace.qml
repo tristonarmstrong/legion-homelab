@@ -20,6 +20,12 @@ Item {
         running: root.mood === "idle"
         onTriggered: root.sleepy = true
     }
+    // `luna snapshot asleep` shows her dozing without waiting 20 seconds.
+    Timer {
+        interval: 300
+        running: snapshotMode && snapshotAsleep
+        onTriggered: root.sleepy = true
+    }
     onMoodChanged: {
         if (mood !== "idle") sleepy = false
         if (mood === "wake") wakeBounce.restart()
