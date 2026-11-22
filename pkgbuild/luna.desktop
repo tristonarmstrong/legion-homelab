@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Luna
+Comment=Luna's face: shows what the voice assistant is doing
+Exec=luna
+Icon=luna
+Terminal=false
+Categories=Utility;
+StartupWMClass=luna
