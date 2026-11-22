@@ -73,6 +73,7 @@ flowchart LR
 | Paperless-ngx (documents) | https://legion.<tailnet>.ts.net:8000 |
 | Vaultwarden (passwords) | https://legion.<tailnet>.ts.net:8222 |
 | Luna | the Legion itself: "Hey Luna" |
+| Luna on / off | `ssh legion@<legion-host> '~/homelab/lunactl start'` (or `stop`, `status`); see [operations](docs/operations.md#turn-luna-on-and-off) |
 | SSH | `ssh legion@<legion-host>` (Tailscale) |
 | Logins | `~/homelab/CREDENTIALS.txt` on the Legion (never committed) |
 
@@ -111,6 +112,7 @@ config, Luna's self-written skills) are copied into `live/` by `./collect`:
 
 ```sh
 cd ~/homelab
+./lunactl status         # Luna on or off (start, stop, enable, disable)
 ./collect                # snapshot the live config into live/
 git status && git diff   # see what changed, including anything Luna changed
 git add -A && git commit -m "Describe the change"

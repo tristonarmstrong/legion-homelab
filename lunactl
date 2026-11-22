@@ -1,0 +1,85 @@
+#!/bin/bash
+# lunactl: turn Luna (voice loop, face, Hermes, speech containers) on and off.
+# Works over SSH, e.g. from another machine on the tailnet:
+#   ssh legion@<legion-host> '~/homelab/lunactl start'
+#
+#   start     start Luna now (does not change what happens at boot)
+#   stop      stop Luna now and close anything she has on screen
+#   restart   stop, then start
+#   status    show each part and whether it starts at boot
+#   enable    start Luna at boot from now on, and start her now
+#   disable   don't start Luna at boot, and stop her now
+#
+# The home server (Immich, Paperless, Vaultwarden, dashboard) is never touched.
+set -uo pipefail
+
+# User services need the user's session bus, which an SSH login doesn't set up.
+export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+export DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS:-unix:path=$XDG_RUNTIME_DIR/bus}
+export PATH=$HOME/.local/bin:$PATH
+
+SERVICES=(hermes-gateway voiced luna)   # in start order: brain, voice loop, face
+CONTAINERS=(speech_whisper_1 tts_tiny-voca_1)
+
+wait_for() { # name url seconds
+  for _ in $(seq "$3"); do
+    curl -sf -m 2 -o /dev/null "$2" && { echo "  $1 ready"; return 0; }
+    sleep 1
+  done
+  echo "  $1 did not answer at $2 (check: podman logs / journalctl --user)" >&2
+  return 1
+}
+
+start() {
+  echo "Starting Luna…"
+  podman start "${CONTAINERS[@]}" >/dev/null
+  systemctl --user start hermes-gateway
+  wait_for "tiny-voca (voice)" http://127.0.0.1:10210/ 30
+  wait_for "Hermes (brain)" http://127.0.0.1:8642/health 60
+  # Whisper speaks Wyoming, not HTTP: wait for its port to open.
+  for _ in $(seq 60); do (exec 3<>/dev/tcp/127.0.0.1/10300) 2>/dev/null && break; sleep 1; done
+  echo "  Whisper (ears) ready"
+  systemctl --user start voiced luna
+  sleep 2
+  status
+}
+
+stop() {
+  echo "Stopping Luna…"
+  screen-close --quiet 2>/dev/null || true
+  systemctl --user stop luna voiced hermes-gateway
+  systemctl --user reset-failed hermes-gateway voiced luna 2>/dev/null
+  podman stop -t 3 "${CONTAINERS[@]}" >/dev/null 2>&1
+  status
+}
+
+status() {
+  printf '%-18s %-10s %s\n' PART NOW AT-BOOT
+  for s in "${SERVICES[@]}"; do
+    printf '%-18s %-10s %s\n' "$s" "$(systemctl --user is-active "$s")" "$(systemctl --user is-enabled "$s" 2>/dev/null)"
+  done
+  for c in "${CONTAINERS[@]}"; do
+    state=$(podman inspect -f '{{.State.Status}}' "$c" 2>/dev/null || echo missing)
+    policy=$(podman inspect -f '{{.HostConfig.RestartPolicy.Name}}' "$c" 2>/dev/null)
+    printf '%-18s %-10s %s\n' "$c" "$state" "restart=$policy"
+  done
+  if pactl list short source-outputs 2>/dev/null | grep -q .; then
+    echo "Microphone: in use"
+  else
+    echo "Microphone: not in use"
+  fi
+}
+
+case "${1:-status}" in
+  start) start ;;
+  stop) stop ;;
+  restart) stop; start ;;
+  status) status ;;
+  enable)
+    systemctl --user enable "${SERVICES[@]}" 2>/dev/null
+    start ;;
+  disable)
+    systemctl --user disable "${SERVICES[@]}" 2>/dev/null
+    stop ;;
+  *) sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+esac

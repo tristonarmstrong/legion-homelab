@@ -1,3 +1,0 @@
-/home/legion/.config/hypr/hyprland.lua:31:-- Luna (this voice assistant's own UI) always fills the handheld screen.
-/home/legion/.config/hypr/hyprland.lua:33:    name  = "luna-fullscreen",
-/home/legion/.config/hypr/hyprland.lua:34:    match = { class = "^luna$" },

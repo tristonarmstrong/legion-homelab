@@ -15,16 +15,21 @@ Voice assistant on a Lenovo Legion Go running Hyprland (800x1280 at scale 1.25, 
 - `screen-luna-fullscreen` — fullscreens the `luna` window if it isn't already.
 - `screen-env` — exports HYPRLAND_INSTANCE_SIGNATURE / XDG_RUNTIME_DIR / JARVIS_PROFILE; **source it before any hyprctl call from a service**.
 
-## Fullscreen pitfalls
+## Layout and fullscreen pitfalls
 
-- Chromium app windows report `fullscreen: 2` and size 640x1024. **That is fullscreen on this display** — do not "fix" it.
-- The `luna` window (class `luna`, the assistant's own UI) is the thing that goes windowed, at ~616x974. Fix lives in `~/.config/hypr/hyprland.lua`:
+The panel is split: Luna's face keeps a strip at the top (~250 logical px) and anything she shows
+fills the rest below. `screen-open` runs `~/.local/bin/screen-split` after launching; it is
+idempotent, so re-run it if a freshly opened window still covers the face.
 
-  ```lua
-  hl.window_rule({ name = "luna-fullscreen", match = { class = "^luna$" }, fullscreen = true })
-  ```
-
-- Toggle fullscreen for the active window with `hyprctl dispatch "hl.dsp.window.fullscreen({ mode = 'fullscreen' })"`. Plain `hyprctl dispatch fullscreen 0 <addr>` fails with a Lua parse error.
+- Chromium app windows report `fullscreen: 2` and size 640x1024. **That is fullscreen on this
+display** — do not "fix" it. It is also the state to leave when the page is meant to be shown
+alone; the split is the default for working-with-content.
+- There is no longer a Hyprland rule forcing class `luna` fullscreen — it was removed because it
+fights the split. Idle Luna (nothing else open) fills the panel through the tiling layout itself,
+and `screen-close` still calls `screen-luna-fullscreen` to hand the screen back to her face.
+- `chrome-*` window classes are shared with the family's own Omarchy web apps; confirm a window is
+Luna's by checking `/proc/<pid>/cmdline` for `$JARVIS_PROFILE` before resizing or fullscreening it.
+- Toggle fullscreen for the active window with `hyprctl dispatch "hl.dsp.window.fullscreen({ mode = 'fullscreen' })"`. Plain `hyprctl dispatch fullscreen 0 <addr>` fails with a Lua parse error. Resize/move behave the same way (`hl.dsp.window.resize({ x = 616, y = 250 })`), always on the active window — focus by address first.
 - Verify with a screenshot plus eyes, not assumptions: `grim -o eDP-1 /tmp/x.png`, then inspect it.
 - Inspect windows: `hyprctl clients -j` (class, fullscreen, size); monitors: `hyprctl monitors -j`. Check config errors with `hyprctl configerrors` after editing lua.
 

@@ -4,6 +4,48 @@ SSH in with `ssh legion@<legion-host>`. User services need
 `XDG_RUNTIME_DIR=/run/user/1000` when run over SSH; most commands below work
 as-is.
 
+## Turn Luna on and off
+
+`~/homelab/lunactl` starts and stops all of Luna: Hermes (her brain), `voiced`
+(wake word and voice loop), the face, and the Whisper and tiny-voca containers.
+The home server is never touched. It sets up the session environment user
+services need, so it works straight over SSH from any machine on the tailnet:
+
+```sh
+ssh legion@<legion-host> ~/homelab/lunactl start     # on now (about 5 s)
+ssh legion@<legion-host> ~/homelab/lunactl stop      # off now, screen cleared, mic released
+ssh legion@<legion-host> ~/homelab/lunactl status    # each part, and whether it starts at boot
+ssh legion@<legion-host> ~/homelab/lunactl restart
+ssh legion@<legion-host> ~/homelab/lunactl enable    # start at boot from now on (and now)
+ssh legion@<legion-host> ~/homelab/lunactl disable   # don't start at boot (and stop now)
+```
+
+`start` and `stop` don't change what happens at boot; `enable` and `disable` do.
+Right now Luna is **disabled**: off, and stays off after a reboot. If you
+`start` her without `enable` and the Legion reboots, the speech containers come
+back on their own but Luna stays off; `lunactl stop` tidies them away.
+
+`status` looks like this when she's off:
+
+```text
+PART               NOW        AT-BOOT
+hermes-gateway     inactive   disabled
+voiced             inactive   disabled
+luna               inactive   disabled
+speech_whisper_1   exited     restart=unless-stopped
+tts_tiny-voca_1    exited     restart=unless-stopped
+Microphone: not in use
+```
+
+What it runs, if you want to do it by hand (over SSH, first
+`export XDG_RUNTIME_DIR=/run/user/1000`):
+
+| | Start | Stop |
+|---|---|---|
+| Speech containers | `podman start speech_whisper_1 tts_tiny-voca_1` | `podman stop speech_whisper_1 tts_tiny-voca_1` |
+| Brain, voice loop, face | `systemctl --user start hermes-gateway voiced luna` | `systemctl --user stop luna voiced hermes-gateway` |
+| At boot | `systemctl --user enable hermes-gateway voiced luna` | `systemctl --user disable hermes-gateway voiced luna` |
+
 ## Is everything up?
 
 ```sh

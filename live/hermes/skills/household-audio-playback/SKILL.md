@@ -66,6 +66,10 @@ Anything playing has to drop in volume the moment Luna starts speaking — asked
 - A SoundCloud hit is not the studio master just because the title looks right. Check the
   canonical length first (`api.deezer.com` search, see `references/sources.md`) and tell the
   family plainly when what came down is a fan upload or a different mix.
+- "Sign in and it'll work for you" does not apply to YouTube here: the family can be signed in on
+their own browser and `yt-dlp --cookies-from-browser` still cannot read those cookies. Say the
+download is blocked and offer the play-it-in-your-window path instead of burning calls on cookie
+extraction.
 
 - `mpv` is independent of the screen browser: `screen-close` does **not** stop audio. To stop
   playback, kill the player (`pkill -f "mpv --no-video"`) and confirm with `pgrep -a mpv`.

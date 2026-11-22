@@ -1,6 +1,6 @@
 ---
 name: household-display-control
-description: Show or clear the Legion Go screen; keep it full screen.
+description: Show or clear the Legion Go screen; face on top, content below.
 ---
 
 # Household display control (Luna on the Legion Go)
@@ -28,20 +28,24 @@ logical desktop is **640x1024**. Everything Luna shows replaces what was there b
    `screen-text` only report that they launched. Confirm with a screenshot (below).
 5. Report in one short sentence: what is on the screen, not a recitation of it.
 
-## This display must always be full screen
+## Screen layout: Luna's face on top, content below
 
-Standing household preference. Two independent layers implement it; keep both intact.
+Standing household preference (it supersedes the earlier "everything full screen" rule): while
+Luna is working on something, the family wants to keep seeing her face. So the panel is split —
+the `luna` window keeps a strip across the top (~250 logical px) and the page fills the rest below.
+Do not let a page take over the whole display.
 
-- Pages: `screen-open` launches Chromium with `--start-fullscreen`, so web pages fill the monitor.
-- Luna's own window: `/usr/bin/luna` (Hyprland class `luna`) is what fills the screen when nothing
-  is open. Tiled dwindle layout leaves it gapped, which is what "you're not full screen anymore"
-  looks like.
-  - Window rule in `~/.config/hypr/hyprland.lua`: `hl.window_rule({ name = "luna-fullscreen",
-    match = { class = "^luna$" }, fullscreen = true })` — applies when the window maps.
-  - `~/.local/bin/screen-luna-fullscreen` re-fullscreens the live window; `screen-close` calls it,
-    so closing a page restores a full-screen Luna instead of a gapped tile.
-  - The `luna` window is the assistant UI process — never kill it to "test" a window rule; test
-    the helper on the live window instead.
+- `~/.local/bin/screen-split` implements it: it leaves fullscreen if either window has it, resizes
+  `luna` to 616x250 and the content window to 616x730. It is idempotent — re-run it if a window
+  still covers the face.
+- `screen-open` no longer passes `--start-fullscreen`; it launches the app window and then runs
+  `screen-split`. Relayout can be needed a second time because a Chromium app window may already
+  remember being fullscreen and the first pass can fire before the window finishes mapping.
+- When nothing is open, `luna` alone in the dwindle layout fills the panel — that idle state is
+  correct, and `screen-close` still ends with `screen-luna-fullscreen` so closing a page hands the
+  whole screen back to her face.
+- The old `luna-fullscreen` Hyprland window rule was removed from `~/.config/hypr/hyprland.lua`;
+  a rule forcing `fullscreen = true` on class `luna` fights the split. Leave it out.
 
 Apply Hyprland config changes with `hyprctl reload`, then **always** `hyprctl configerrors` — an
 invalid rule property is otherwise silently dropped.
@@ -66,9 +70,22 @@ grim -o eDP-1 /tmp/screen-check.png   # then look at the PNG with vision
   Use `hyprctl dispatch "hl.dsp.window.fullscreen({ mode = 'fullscreen' })"`; it acts on the
   **active** window, so focus the target first with
   `hyprctl dispatch "hl.dsp.focus({ window = 'address:0x...' })"`.
+- `screen-open` passes `--password-store=basic` to the screen profile on purpose: without it the
+  profile's cookies land in `v11` OS-keyring encryption that CLI tools cannot read. It also passes
+  `--autoplay-policy=no-user-gesture-required`, so media pages start by themselves.
 - The screen browser's window class is `chrome-<host>__-<path>-Default`, i.e. per-URL. Never match
   on one site's class to identify "the screen", and never `pkill chrome`; kill by profile instead
   (`pkill -f -- "--user-data-dir=$JARVIS_PROFILE"`, which is what `screen-close` does).
+- `chrome-*` is **not** unique to the screen browser: the family's own Omarchy web apps (the YouTube
+  PWA, for one) use the same `chrome-<host>__-Default` shape. Before acting on a window, prove it is
+  Luna's by checking that `/proc/<pid>/cmdline` contains `$JARVIS_PROFILE` — `screen-split` does
+  exactly that, and fullscreening the family's window by mistake is the failure it prevents.
+- Resizing also acts on the **active** window: `hyprctl dispatch "hl.dsp.focus({ window =
+  'address:0x...' })"` first, then `hyprctl dispatch "hl.dsp.window.resize({ x = 616, y = 250 })"`.
+  Without the focus call the resize lands on whatever had focus.
+- A third window on the workspace (the family's own app) squeezes both panes and the split degrades
+  to three columns. That is expected — do not move or close their window to make room; say the
+  content shares the bottom half.
 - Closing a page is not "clearing the screen": the Luna face page comes back. Say the screen is
   clear only after confirming, and only when asked — declining an offer is not a request to close.
 - Long content belongs on the screen, not in the voice reply: reading 1,000 numbers aloud takes

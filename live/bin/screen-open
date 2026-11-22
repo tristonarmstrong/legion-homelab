@@ -8,7 +8,7 @@ url=${1:?usage: screen-open <url>}
 source "$(dirname "$0")/screen-env"
 screen-close --quiet || true
 
-hyprctl dispatch "hl.dsp.exec_cmd([[chromium --user-data-dir=$JARVIS_PROFILE --app=$url --start-fullscreen \
+hyprctl dispatch "hl.dsp.exec_cmd([[chromium --user-data-dir=$JARVIS_PROFILE --app=$url \
   --password-store=basic \
   --no-first-run --noerrdialogs --hide-crash-restore-bubble --disable-session-crashed-bubble \
   --autoplay-policy=no-user-gesture-required]])" >/dev/null
