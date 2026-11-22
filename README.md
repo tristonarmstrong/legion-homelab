@@ -54,24 +54,28 @@ flowchart LR
     phone["📱 Family devices<br/>on the tailnet"] -- HTTPS --> ts
 
     subgraph legion["Legion Go"]
-        ts["tailscale serve<br/>legion.<tailnet>.ts.net"]
+        ts["tailscale serve<br/>(the Legion's Tailscale name)"]
         ts -- ":443" --> home["Homepage<br/>dashboard"]
         ts -- ":2283" --> immich["Immich<br/>photos"]
         ts -- ":8000" --> paperless["Paperless-ngx<br/>documents"]
         ts -- ":8222" --> vault["Vaultwarden<br/>passwords"]
     end
 
-    legion -- "all internet traffic" --> exit[("VPS exit node<br/>exit node")]
+    legion -- "all internet traffic" --> exit[("VPS<br/>exit node")]
 ```
 
 ## At a glance
 
+`legion.<tailnet>.ts.net` is the Legion's Tailscale name and `<legion-host>` its
+Tailscale name or IP; the real values live only in the `.env` files on the
+Legion.
+
 | What | Where |
 |---|---|
-| Dashboard | https://legion.<tailnet>.ts.net |
-| Immich (photos) | https://legion.<tailnet>.ts.net:2283 |
-| Paperless-ngx (documents) | https://legion.<tailnet>.ts.net:8000 |
-| Vaultwarden (passwords) | https://legion.<tailnet>.ts.net:8222 |
+| Dashboard | `https://legion.<tailnet>.ts.net` |
+| Immich (photos) | `https://legion.<tailnet>.ts.net:2283` |
+| Paperless-ngx (documents) | `https://legion.<tailnet>.ts.net:8000` |
+| Vaultwarden (passwords) | `https://legion.<tailnet>.ts.net:8222` |
 | Luna | the Legion itself: "Hey Luna" |
 | Luna on / off | `ssh legion@<legion-host> '~/homelab/lunactl start'` (or `stop`, `status`); see [operations](docs/operations.md#turn-luna-on-and-off) |
 | SSH | `ssh legion@<legion-host>` (Tailscale) |

@@ -7,10 +7,10 @@ published over Tailscale HTTPS. Logins are in `~/homelab/CREDENTIALS.txt`.
 
 | Service | URL | Internal | Folder |
 |---|---|---|---|
-| Homepage dashboard | https://legion.<tailnet>.ts.net | 13000 | `dashboard/` |
-| Immich | https://legion.<tailnet>.ts.net:2283 | 12283 | `immich/` |
-| Paperless-ngx | https://legion.<tailnet>.ts.net:8000 | 18000 | `paperless/` |
-| Vaultwarden | https://legion.<tailnet>.ts.net:8222 | 18222 | `vaultwarden/` |
+| Homepage dashboard | `https://legion.<tailnet>.ts.net` | 13000 | `dashboard/` |
+| Immich | `https://legion.<tailnet>.ts.net:2283` | 12283 | `immich/` |
+| Paperless-ngx | `https://legion.<tailnet>.ts.net:8000` | 18000 | `paperless/` |
+| Vaultwarden | `https://legion.<tailnet>.ts.net:8222` | 18222 | `vaultwarden/` |
 
 ## Dashboard (Homepage)
 

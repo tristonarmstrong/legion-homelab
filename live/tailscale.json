@@ -1,4 +1,3 @@
 {
-  "ExitNode": "<exit-node-id>",
-  "Self": "legion.<tailnet>.ts.net."
+  "exit_node_in_use": true
 }

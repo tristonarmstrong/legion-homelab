@@ -91,8 +91,8 @@ flowchart LR
     subgraph tailnet["Tailscale tailnet"]
         mac["Mac"]
         phones["Family phones"]
-        legion["legion<br/><legion-host>"]
-        vps["VPS exit node<br/>exit node"]
+        legion["legion"]
+        vps["VPS<br/>exit node"]
     end
     lan["Local Wi-Fi / LAN"]
     internet(("Internet"))
@@ -107,7 +107,7 @@ flowchart LR
   a real certificate for `legion.<tailnet>.ts.net` and is reachable only from
   the tailnet. `live/tailscale-serve.txt` has the current mapping.
 - **Exit node:** the Legion sends its internet traffic through
-  `VPS exit node` with LAN access off, because it
+  a VPS on the tailnet with LAN access off, because it
   started out on public Wi-Fi. Turn it off with `tailscale set --exit-node=`.
 - **ufw** is on and blocks inbound. Rootless Podman publishes ports only on
   `127.0.0.1`, so the firewall is never bypassed.

@@ -30,6 +30,6 @@ services:
       PAPERLESS_ADMIN_USER: ${PAPERLESS_ADMIN_USER}
       PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD}
       PAPERLESS_TIME_ZONE: ${PAPERLESS_TIME_ZONE}
-      PAPERLESS_URL: https://legion.<tailnet>.ts.net:8000
+      PAPERLESS_URL: ${PAPERLESS_URL}
       PAPERLESS_OCR_LANGUAGE: eng
 volumes: {data: {}, pgdata: {}, redisdata: {}, media: {}, export: {}, consume: {}}

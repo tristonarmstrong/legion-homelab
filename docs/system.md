@@ -60,7 +60,7 @@ rule so the face is always full screen (`live/hypr/luna-rules.txt`).
 ## Networking
 
 - Tailscale with the operator set to `legion` (no sudo for `tailscale` commands).
-- Exit node `VPS exit node`, LAN access off; see [architecture](architecture.md#network).
+- Exit node a VPS on the tailnet, LAN access off; see [architecture](architecture.md#network).
 - ufw on.
 
 ## Packages added

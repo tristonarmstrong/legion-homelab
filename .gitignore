@@ -12,6 +12,7 @@
 !/dashboard/
 /dashboard/*
 !/dashboard/docker-compose.yml
+!/dashboard/.env.example
 !/dashboard/config/
 /dashboard/config/logs/
 

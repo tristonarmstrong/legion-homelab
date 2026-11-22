@@ -4,9 +4,9 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     restart: unless-stopped
     network_mode: host
+    env_file: .env   # HOMEPAGE_VAR_HOST and HOMEPAGE_ALLOWED_HOSTS (your Tailscale name)
     environment:
       HOSTNAME: 127.0.0.1
       PORT: "13000"
-      HOMEPAGE_ALLOWED_HOSTS: legion.<tailnet>.ts.net,127.0.0.1:13000
     volumes:
       - ./config:/app/config
