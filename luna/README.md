@@ -26,4 +26,5 @@ bin/test
 bin/install                       # installs the package, launcher entry and user service
 systemctl --user enable --now luna  # start with the desktop
 luna snapshot listening out.png   # render one mood offscreen (asleep, idle, wake, listening, thinking, speaking)
+luna record frames/               # render the scripted promo offscreen, frame by frame
 ```

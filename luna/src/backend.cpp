@@ -70,6 +70,17 @@ void Backend::stepDemo() {
     setState(QString::fromUtf8(step.state));
 }
 
+void Backend::showScripted(const QString &state, const QString &speech, const QString &heard, const QString &tool) {
+    if (!m_demo) {
+        m_demo = true;
+        emit demoChanged();
+    }
+    setSpeech(speech);
+    setHeard(heard);
+    setTool(tool);
+    setState(state);
+}
+
 void Backend::setState(const QString &state) {
     if (state != m_state) {
         m_state = state;

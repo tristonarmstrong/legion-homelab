@@ -2,6 +2,8 @@
 
 ![Luna's moods: asleep, waking, listening, thinking, speaking](docs/images/moods.png)
 
+▶️ **[Watch Luna in action](docs/media/luna-promo.mp4)** (6 seconds, with sound)
+
 A Lenovo Legion Go running [Omarchy](https://omarchy.org), set up as the
 house's always-on box. It does two jobs:
 

@@ -57,7 +57,7 @@ Item {
     Timer {
         interval: 2500 + Math.random() * 3500
         repeat: true
-        running: root.openness > 0.3
+        running: root.openness > 0.3 && !recordMode
         onTriggered: {
             interval = 2500 + Math.random() * 3500
             root.blinking = true
@@ -388,6 +388,6 @@ Item {
         color: root.offline ? "#e0a44a" : "#6b7280"
         text: root.offline ? qsTr("Luna can't hear right now: her voice service (voiced) isn't running.")
                            : qsTr("Say “Hey Luna”")
-        visible: root.mood === "idle"
+        visible: root.mood === "idle" && !recordMode
     }
 }

@@ -36,6 +36,9 @@ public:
     // without talking to it. Any message from voiced ends the preview.
     Q_INVOKABLE void stepDemo();
 
+    // Shows one scripted moment (for `luna record`), as a preview like stepDemo.
+    void showScripted(const QString &state, const QString &speech, const QString &heard, const QString &tool);
+
 signals:
     void stateChanged();
     void speechChanged();
