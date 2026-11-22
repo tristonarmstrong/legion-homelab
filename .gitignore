@@ -40,6 +40,8 @@
 !/tts/app/
 !/tts/fetch
 
+!/luna/
+
 !/voiced/
 /voiced/*
 !/voiced/Cargo.toml
