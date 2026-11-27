@@ -4,8 +4,10 @@ After=pipewire-pulse.service hermes-gateway.service
 Wants=pipewire-pulse.service
 
 [Service]
+ExecStartPre=-%h/.local/bin/luna-ec-volume
 ExecStart=%h/homelab/voiced/target/release/voiced
 Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin
+Environment=VOICED_MIC=luna_ec_source VOICED_SPEAKER=luna_ec_sink VOICED_WAKE_WHISPER=127.0.0.1:10301
 Restart=always
 RestartSec=2
 Nice=-5

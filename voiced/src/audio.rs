@@ -1,18 +1,25 @@
 //! Mic capture and playback through PipeWire's Pulse server (pacat), so no audio library is linked.
 use anyhow::{Context, Result};
 use std::io::{Read, Write};
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::sync::mpsc::{self, Receiver};
 use std::thread;
 
 pub const MIC_RATE: u32 = 16_000;
 pub const CHUNK: usize = 1280; // 80 ms, the openWakeWord step
 
+/// `--device=` for pacat from `VOICED_MIC` / `VOICED_SPEAKER` (e.g. the echo-cancel source and sink);
+/// unset means PipeWire's defaults.
+fn device(var: &str) -> Vec<String> {
+    std::env::var(var).ok().filter(|d| !d.is_empty()).map(|d| format!("--device={d}")).into_iter().collect()
+}
+
 /// Starts `pacat --record` and returns a channel of 80 ms, 16 kHz mono chunks.
 pub fn start_mic() -> Result<Receiver<Vec<i16>>> {
     let mut child = Command::new("pacat")
         .args(["--record", "--raw", "--format=s16le", "--rate=16000", "--channels=1",
                "--latency-msec=40", "--client-name=voiced", "--stream-name=wake-word"])
+        .args(device("VOICED_MIC"))
         .stdout(Stdio::piped()).stderr(Stdio::null()).spawn().context("starting pacat --record")?;
     let mut out = child.stdout.take().unwrap();
     let (tx, rx) = mpsc::channel();
@@ -29,12 +36,19 @@ pub fn start_mic() -> Result<Receiver<Vec<i16>>> {
     Ok(rx)
 }
 
-/// Plays 16-bit mono PCM at `rate` and blocks until it has finished.
-pub fn play(pcm: &[u8], rate: u32) -> Result<()> {
-    let mut child = Command::new("pacat")
+/// Starts a `pacat --playback` for 16-bit mono PCM at `rate`; write the audio to its stdin.
+/// Killing the child stops the sound at once.
+pub fn player(rate: u32) -> Result<Child> {
+    Command::new("pacat")
         .args(["--playback", "--raw", "--format=s16le", &format!("--rate={rate}"), "--channels=1",
                "--client-name=voiced", "--stream-name=voice"])
-        .stdin(Stdio::piped()).stderr(Stdio::null()).spawn().context("starting pacat --playback")?;
+        .args(device("VOICED_SPEAKER"))
+        .stdin(Stdio::piped()).stderr(Stdio::null()).spawn().context("starting pacat --playback")
+}
+
+/// Plays 16-bit mono PCM at `rate` and blocks until it has finished.
+pub fn play(pcm: &[u8], rate: u32) -> Result<()> {
+    let mut child = player(rate)?;
     child.stdin.take().unwrap().write_all(pcm)?;
     child.wait()?;
     Ok(())

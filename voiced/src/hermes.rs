@@ -5,9 +5,14 @@
 use anyhow::Result;
 use serde_json::{json, Value};
 use std::io::{BufRead, BufReader};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Sender;
+use std::sync::Arc;
 
 pub enum Chunk {
+    /// The response id, as soon as Hermes creates it. A cancelled turn can still be chained to:
+    /// on disconnect Hermes interrupts the agent and stores what it did so far.
+    Started(String),
     Sentence(String),
     Tool(String),
     /// Full reply text and the response id to chain the next turn to.
@@ -21,21 +26,29 @@ pub struct Request {
     pub instructions: String,
     pub input: String,
     pub previous: Option<String>,
+    /// DeepSeek reasoning effort for this turn: "none", "low", "medium", "high" or "max".
+    pub reasoning: String,
 }
 
-pub fn stream(req: Request, tx: Sender<Chunk>) {
-    if let Err(e) = run(&req, &tx) {
-        let _ = tx.send(Chunk::Failed(e.to_string()));
+/// Streams one reply into `tx`. Setting `cancel` makes it stop reading and drop the connection
+/// (checked on every line; Hermes sends keepalives while a tool runs), which interrupts Hermes.
+pub fn stream(req: Request, tx: Sender<Chunk>, cancel: Arc<AtomicBool>) {
+    if let Err(e) = run(&req, &tx, &cancel) {
+        if !cancel.load(Ordering::SeqCst) {
+            let _ = tx.send(Chunk::Failed(e.to_string()));
+        }
     }
 }
 
-fn run(req: &Request, tx: &Sender<Chunk>) -> Result<()> {
+fn run(req: &Request, tx: &Sender<Chunk>, cancel: &AtomicBool) -> Result<()> {
     let mut body = json!({
         "model": "hermes-agent",
         "stream": true,
         "instructions": req.instructions,
         "input": req.input,
     });
+    // Per-request, so only voice turns are affected (Hermes' own default stays as configured).
+    body["model_options"] = json!({"reasoning_effort": req.reasoning});
     if let Some(prev) = &req.previous {
         body["previous_response_id"] = json!(prev);
     }
@@ -43,6 +56,9 @@ fn run(req: &Request, tx: &Sender<Chunk>) -> Result<()> {
     let reader = BufReader::new(resp.body_mut().as_reader());
     let (mut pending, mut full, mut id) = (String::new(), String::new(), None);
     for line in reader.lines() {
+        if cancel.load(Ordering::SeqCst) {
+            return Ok(());
+        }
         let line = line?;
         let Some(data) = line.strip_prefix("data:").map(str::trim) else { continue };
         if data == "[DONE]" {
@@ -52,6 +68,9 @@ fn run(req: &Request, tx: &Sender<Chunk>) -> Result<()> {
         match v["type"].as_str().unwrap_or("") {
             "response.created" | "response.completed" => {
                 if let Some(i) = v["response"]["id"].as_str() {
+                    if id.is_none() {
+                        let _ = tx.send(Chunk::Started(i.to_string()));
+                    }
                     id = Some(i.to_string());
                 }
             }

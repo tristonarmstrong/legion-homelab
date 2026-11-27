@@ -42,7 +42,7 @@ What it runs, if you want to do it by hand (over SSH, first
 
 | | Start | Stop |
 |---|---|---|
-| Speech containers | `podman start speech_whisper_1 tts_tiny-voca_1` | `podman stop speech_whisper_1 tts_tiny-voca_1` |
+| Speech containers | `podman start speech_whisper_1 speech_whisper-fast_1 tts_tiny-voca_1` | `podman stop speech_whisper_1 speech_whisper-fast_1 tts_tiny-voca_1` |
 | Brain, voice loop, face | `systemctl --user start hermes-gateway voiced luna` | `systemctl --user stop luna voiced hermes-gateway` |
 | At boot | `systemctl --user enable hermes-gateway voiced luna` | `systemctl --user disable hermes-gateway voiced luna` |
 
@@ -119,4 +119,6 @@ Not set up yet. What matters, in order:
 | "No thanks" closed the page | Over-eager instruction-following | Instructions say declining an offer is not a request to close |
 | Face not full screen after a page closes | Tiled layout | Luna's own fix: window rule plus `screen-luna-fullscreen` |
 | Home Assistant ignored its port settings | Newer HA keeps HTTP settings in `.storage/http`, not YAML | Historical: HA was removed |
+| Luna nearly silent after echo cancellation | `audio-duck` (Luna's own script: turns other streams to 22% while she speaks) ducked the `Echo-Cancel Playback` stream, which *is* her voice, and its restores compounded (down to 0.0001) | `audio-duck` skips that stream; `luna-ec-volume` resets it to 100% when voiced starts |
+| "Sorry, I could not reach my brain" on every turn; Hermes log: DeepSeek `HTTP 400: .messages[N].content[1]: Invalid base64 data` | In native image mode `vision_analyze` puts the raw base64 image into the conversation, which is stored and replayed every turn. Hermes' secret redaction sometimes masks part of it (`***`) because random base64 can look like a token (1 in 6 random 160 KB images in a test), and DeepSeek then rejects the whole conversation | `agent.image_input_mode: text` in `~/.hermes/config.yaml` (images are described in a side call; only text is stored). voiced also retries a rejected turn in a fresh conversation |
 | Sudo needed over SSH | No terminal for the password | `omarchy-sudo-passwordless <minutes>` grants a time-limited window |

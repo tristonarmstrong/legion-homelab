@@ -72,6 +72,10 @@ agent:
   verbose: false
   reasoning_effort: low
   reasoning_overrides: {}
+  # text: vision_analyze describes images in a side call and only the description enters the
+  # conversation. Native mode stores the raw base64 in the replayed history, where Hermes secret
+  # redaction can corrupt it (DeepSeek then rejects every later turn: "Invalid base64 data").
+  image_input_mode: text
   service_tier: ''
   fast_auto_seconds: 60
   personalities: {}

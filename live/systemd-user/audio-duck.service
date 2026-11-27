@@ -1,0 +1,12 @@
+[Unit]
+Description=Duck music while Luna speaks
+After=pipewire-pulse.service
+Wants=pipewire-pulse.service
+
+[Service]
+ExecStart=%h/.local/bin/audio-duck
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

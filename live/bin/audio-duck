@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""Duck music/other playback while Luna is speaking.
+
+Watches PulseAudio/PipeWire sink inputs for the TTS stream voiced creates
+(`pacat --client-name=voiced`). While that stream is running, everything else
+is turned down to DUCK_PCT of its normal volume so speech stays intelligible;
+when speech ends the previous volumes are restored.
+"""
+import os
+import re
+import subprocess
+import time
+
+DUCK_PCT = 22
+TTS_CLIENTS = ("voiced", "tiny-voca")
+# voiced plays through the echo canceller (luna_ec_sink), so her voice reaches the speakers as this
+# stream. It is Luna, not "something else": never duck it (ducking it made her nearly silent).
+LUNA_STREAMS = ("Echo-Cancel Playback",)
+POLL = 0.15
+
+BLOCK_RE = re.compile(r"^Sink Input #(\d+)$")
+
+
+def sink_inputs():
+    """Return list of dicts: index, app, corked, volume(percent int)."""
+    try:
+        out = subprocess.run(
+            ["pactl", "list", "sink-inputs"],
+            capture_output=True, text=True, timeout=5,
+        ).stdout
+    except Exception:
+        return []
+
+    items, cur = [], None
+    for line in out.splitlines():
+        m = BLOCK_RE.match(line.strip())
+        if m:
+            if cur:
+                items.append(cur)
+            cur = {"index": int(m.group(1)), "app": "", "media": "", "corked": False, "volume": None}
+            continue
+        if cur is None:
+            continue
+        s = line.strip()
+        if s.startswith("application.name = "):
+            cur["app"] = s.split('"')[1] if '"' in s else ""
+        elif s.startswith("media.name = "):
+            cur["media"] = s.split('"')[1] if '"' in s else ""
+        elif s.startswith("Corked: yes"):
+            cur["corked"] = True
+        elif s.startswith("Volume:") and cur["volume"] is None:
+            pct = re.search(r"(\d+)%", s)
+            if pct:
+                cur["volume"] = int(pct.group(1))
+    if cur:
+        items.append(cur)
+    return items
+
+
+def set_volume(index, pct):
+    subprocess.run(
+        ["pactl", "set-sink-input-volume", str(index), f"{pct}%"],
+        capture_output=True, timeout=5,
+    )
+
+
+def main():
+    originals = {}   # sink-input index -> volume before ducking
+    ducked = False
+    while True:
+        items = sink_inputs()
+        speaking = any(
+            (i["app"] in TTS_CLIENTS) and not i["corked"] for i in items
+        )
+
+        others = [i for i in items
+                  if i["app"] not in TTS_CLIENTS and i["media"] not in LUNA_STREAMS and not i["corked"]]
+        live = {i["index"] for i in items}
+
+        if speaking:
+            for i in others:
+                idx = i["index"]
+                if idx not in originals and i["volume"]:
+                    originals[idx] = i["volume"]
+                    target = max(1, round(i["volume"] * DUCK_PCT / 100))
+                    set_volume(idx, target)
+            ducked = True
+        else:
+            if ducked:
+                for idx, vol in list(originals.items()):
+                    if idx in live:
+                        set_volume(idx, vol)
+                originals.clear()
+                ducked = False
+            else:
+                # forget streams that went away
+                for idx in list(originals):
+                    if idx not in live:
+                        originals.pop(idx, None)
+
+        time.sleep(POLL)
+
+
+if __name__ == "__main__":
+    main()

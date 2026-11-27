@@ -1,0 +1,7 @@
+#!/bin/sh
+# Sets the echo canceller's speaker stream to 100%. It comes up at about 1% when
+# pipewire-pulse loads module-echo-cancel (and WirePlumber saves that), which makes
+# Luna almost silent. voiced.service runs this before every start.
+id=$(pw-dump | jq -r '.[] | select(.info.props["node.name"] == "echo-cancel-playback") | .id')
+[ -n "$id" ] && wpctl set-volume "$id" 1.0
+exit 0

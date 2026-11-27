@@ -6,6 +6,13 @@ services:
     command: --model small-int8 --language en
     ports: ["127.0.0.1:10300:10300"]
     volumes: ["./whisper:/data"]
+  # Tiny model for voiced's wake check only ("did someone really say Luna?"): fast, not accurate enough for requests.
+  whisper-fast:
+    image: docker.io/rhasspy/wyoming-whisper:latest
+    restart: unless-stopped
+    command: --model tiny-int8 --language en --initial-prompt "Hey Luna."
+    ports: ["127.0.0.1:10301:10300"]
+    volumes: ["./whisper:/data"]
   piper:
     image: docker.io/rhasspy/wyoming-piper:latest
     restart: unless-stopped

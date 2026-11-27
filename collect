@@ -6,15 +6,21 @@ set -euo pipefail
 cd "$(dirname "$0")"
 L=live
 rm -rf "$L"
-mkdir -p "$L"/{bin,systemd-user,system,hermes/skills,hypr}
+mkdir -p "$L"/{bin,systemd-user,system,hermes/skills,hypr,pipewire}
 
 # Screen commands Luna uses (she edits these herself).
 cp -p "$HOME"/.local/bin/screen-* "$L/bin/"
+cp -p "$HOME"/.local/bin/luna-ec-volume "$L/bin/"
+cp -p "$HOME"/.local/bin/audio-duck "$L/bin/"
+cp -p "$HOME/.config/systemd/user/audio-duck.service" "$L/systemd-user/"
 
 # User services: the voice loop, Hermes and the face.
 cp -p "$HOME/.config/systemd/user/voiced.service" "$L/systemd-user/"
 cp -p "$HOME/.config/systemd/user/hermes-gateway.service" "$L/systemd-user/"
 [[ -f /usr/lib/systemd/user/luna.service ]] && cp -p /usr/lib/systemd/user/luna.service "$L/systemd-user/"
+
+# Echo cancellation for Luna's mic and voice (voiced uses luna_ec_source / luna_ec_sink).
+cp -p "$HOME"/.config/pipewire/pipewire-pulse.conf.d/luna-echo-cancel.conf "$L/pipewire/" 2>/dev/null || true
 
 # Root-owned config (readable without sudo).
 cp -p /etc/udev/rules.d/90-battery-long-life.rules "$L/system/" 2>/dev/null || true
